@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, Menu } from 'lucide-react';
+import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X } from 'lucide-react';
 import { Conversation, Persona } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -14,11 +15,11 @@ interface ChatSidebarProps {
 }
 
 const navItems = [
-  { icon: MessageCircle, label: 'Chat', active: true },
-  { icon: Trophy, label: 'Leaderboard', badge: 'BETA' },
-  { icon: User, label: 'Profile' },
-  { icon: Gift, label: 'Refer for rewards' },
-  { icon: Globe, label: 'Find us', expandable: true },
+  { icon: MessageCircle, label: 'Chat', action: 'chat' },
+  { icon: Trophy, label: 'Leaderboard', badge: 'BETA', action: 'leaderboard' },
+  { icon: User, label: 'Profile', action: 'profile' },
+  { icon: Gift, label: 'Refer for rewards', action: 'refer' },
+  { icon: Globe, label: 'Find us', expandable: true, action: 'findus' },
 ];
 
 export function ChatSidebar({
@@ -31,12 +32,27 @@ export function ChatSidebar({
   onClose,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeNav, setActiveNav] = useState('chat');
+  const [findUsOpen, setFindUsOpen] = useState(false);
 
   const filtered = conversations.filter(c =>
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-
+  const handleNavClick = (action: string) => {
+    if (action === 'findus') {
+      setFindUsOpen(prev => !prev);
+      return;
+    }
+    setActiveNav(action);
+    if (action === 'leaderboard') {
+      toast('Leaderboard coming soon!');
+    } else if (action === 'profile') {
+      toast('Profile coming soon!');
+    } else if (action === 'refer') {
+      toast('Referral rewards coming soon!');
+    }
+  };
 
   return (
     <>
@@ -73,10 +89,11 @@ export function ChatSidebar({
           {navItems.map((item) => (
             <button
               key={item.label}
+              onClick={() => handleNavClick(item.action)}
               className={`
                 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
                 transition-all duration-150
-                ${item.active
+                ${activeNav === item.action
                   ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                   : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
                 }
@@ -89,9 +106,15 @@ export function ChatSidebar({
                   {item.badge}
                 </span>
               )}
-              {item.expandable && <ChevronDown className="w-3.5 h-3.5" />}
+              {item.expandable && <ChevronDown className={`w-3.5 h-3.5 transition-transform ${findUsOpen ? 'rotate-180' : ''}`} />}
             </button>
           ))}
+          {findUsOpen && (
+            <div className="pl-10 space-y-1 py-1">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="block px-3 py-1.5 text-sm text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50 rounded-lg transition-colors">Twitter</a>
+              <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="block px-3 py-1.5 text-sm text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50 rounded-lg transition-colors">Discord</a>
+            </div>
+          )}
         </nav>
 
         {/* Search */}
