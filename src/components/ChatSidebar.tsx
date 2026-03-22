@@ -36,13 +36,7 @@ export function ChatSidebar({
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatDate = (date: Date) => {
-    const days = Math.floor((Date.now() - date.getTime()) / 86400000);
-    if (days < 1) return 'Today';
-    if (days < 7) return `${days}d ago`;
-    if (days < 30) return `${Math.floor(days / 7)}w ago`;
-    return `${Math.floor(days / 30)}mo ago`;
-  };
+
 
   return (
     <>
@@ -65,8 +59,7 @@ export function ChatSidebar({
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <h1 className="text-lg font-bold text-foreground tracking-tight">Pipeline</h1>
+        <div className="flex items-center justify-end px-5 pt-5 pb-3">
           <button
             onClick={onClose}
             className="p-1.5 rounded-md hover:bg-sidebar-accent transition-colors lg:hidden"
@@ -129,12 +122,6 @@ export function ChatSidebar({
             New conversation
           </button>
 
-          {filtered.length > 0 && (
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">
-              Last 30 Days
-            </p>
-          )}
-
           {filtered.map((conv) => (
             <button
               key={conv.id}
@@ -149,9 +136,6 @@ export function ChatSidebar({
               `}
             >
               <span className="truncate flex-1">{conv.title}</span>
-              <span className="text-[11px] text-muted-foreground ml-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                {formatDate(conv.updatedAt)}
-              </span>
             </button>
           ))}
         </div>
