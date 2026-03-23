@@ -20,14 +20,16 @@ jobs:
       - name: Build assets for WordPress
         run: npx vite build --config vite.config.wp.ts
 
-      - name: Prepare and commit assets
+      - name: Prepare WP files
         run: |
-          mkdir -p Assets
-          cp wordpress-assets/Assets/index.js Assets/index.js
-          # CSS may be named index.css or style.css
-          find wordpress-assets/Assets -name "*.css" -exec cp {} Assets/index.css \;
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Assets/
-          git diff --cached --quiet || git commit -m "Build: update WordPress assets"
-          git push
+          mkdir -p wp-export
+          cp wordpress-assets/Assets/index.js wp-export/index.js
+          find wordpress-assets/Assets -name "*.css" -exec cp {} wp-export/index.css \;
+
+      - name: Upload WordPress files
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordpress-assets
+          path: |
+            wp-export/index.js
+            wp-export/index.css
