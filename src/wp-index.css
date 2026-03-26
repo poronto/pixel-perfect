@@ -1,0 +1,95 @@
+/* WordPress-scoped styles — NO @tailwind base to avoid global resets */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind components;
+@tailwind utilities;
+
+/* Scope all design tokens under our container */
+#versace22-chat-root {
+  --background: 15 12% 7%;
+  --foreground: 30 25% 88%;
+  --card: 15 10% 11%;
+  --card-foreground: 30 25% 88%;
+  --popover: 15 10% 13%;
+  --popover-foreground: 30 25% 88%;
+  --primary: 22 85% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 15 8% 15%;
+  --secondary-foreground: 30 20% 75%;
+  --muted: 15 8% 14%;
+  --muted-foreground: 30 12% 50%;
+  --accent: 22 85% 42%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 15 8% 16%;
+  --input: 15 8% 18%;
+  --ring: 22 85% 42%;
+  --radius: 0.75rem;
+  --sidebar-background: 15 10% 9%;
+  --sidebar-foreground: 30 20% 75%;
+  --sidebar-primary: 22 85% 42%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 15 10% 14%;
+  --sidebar-accent-foreground: 30 25% 88%;
+  --sidebar-border: 15 8% 14%;
+  --sidebar-ring: 22 85% 42%;
+  --chat-bubble-user: 15 10% 14%;
+  --chat-bubble-ai: 15 8% 11%;
+  --chat-input-bg: 15 10% 13%;
+  --orange-glow: 22 90% 50%;
+
+  /* Apply base styles to our container only */
+  background-color: hsl(15 12% 7%);
+  color: hsl(30 25% 88%);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+#versace22-chat-root *,
+#versace22-chat-root *::before,
+#versace22-chat-root *::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: hsl(var(--border));
+}
+
+/* Scrollbar styling scoped */
+#versace22-chat-root ::-webkit-scrollbar {
+  width: 6px;
+}
+#versace22-chat-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+#versace22-chat-root ::-webkit-scrollbar-thumb {
+  background: hsl(15 8% 22%);
+  border-radius: 3px;
+}
+#versace22-chat-root ::-webkit-scrollbar-thumb:hover {
+  background: hsl(15 8% 30%);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(22 85% 42% / 0); }
+  50% { box-shadow: 0 0 16px 2px hsl(22 85% 42% / 0.3); }
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
