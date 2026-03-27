@@ -6,6 +6,7 @@ import { ChatMessages } from '@/components/ChatMessages';
 import { PersonaSelector } from '@/components/PersonaSelector';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { DEFAULT_PERSONAS, SAMPLE_CONVERSATIONS, Message, Conversation, Persona } from '@/lib/types';
+import { isWordPress, sendMessageToWP } from '@/lib/wp-api';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -74,14 +75,28 @@ const Index = () => {
       setActiveConvId(newConv.id);
     }
 
-    // Simulate AI response
+    // Get AI response — real API in WordPress, simulated in preview
     setIsTyping(true);
-    await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+
+    let replyContent: string;
+    try {
+      if (isWordPress()) {
+        // Call the real WordPress plugin backend
+        replyContent = await sendMessageToWP(text);
+      } else {
+        // Simulated response for Lovable preview only
+        await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+        replyContent = getSimulatedResponse(text, selectedPersona);
+      }
+    } catch (error) {
+      console.error('Chat API error:', error);
+      replyContent = `⚠️ Error: ${error instanceof Error ? error.message : 'Failed to get response'}. Please check your API settings in WordPress admin.`;
+    }
 
     const aiMsg: Message = {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: getSimulatedResponse(text, selectedPersona),
+      content: replyContent,
       timestamp: new Date(),
       persona: selectedPersona,
     };
