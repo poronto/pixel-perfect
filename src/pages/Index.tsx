@@ -1,20 +1,29 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { ChatSidebar, SidebarView } from '@/components/ChatSidebar';
 import { ChatInput } from '@/components/ChatInput';
 import { ChatMessages } from '@/components/ChatMessages';
-import { PersonaSelector } from '@/components/PersonaSelector';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { LeaderboardView, ProfileView, ReferView } from '@/components/SidebarViews';
-import { DEFAULT_PERSONAS, SAMPLE_CONVERSATIONS, Message, Conversation, Persona } from '@/lib/types';
+import { DEFAULT_PERSONAS, Message, Persona } from '@/lib/types';
 import { sendMessageToWP } from '@/lib/wp-api';
+import { useAuth } from '@/hooks/useAuth';
+import { useConversations } from '@/hooks/useConversations';
 
 const Index = () => {
+  const { user, signOut, profile } = useAuth();
+  const {
+    conversations,
+    loadMessages,
+    createConversation,
+    saveMessage,
+    deleteConversation,
+  } = useConversations();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState<SidebarView>('chat');
   const [personas] = useState<Persona[]>(DEFAULT_PERSONAS);
   const [selectedPersona, setSelectedPersona] = useState<Persona>(DEFAULT_PERSONAS[0]);
-  const [conversations, setConversations] = useState<Conversation[]>(SAMPLE_CONVERSATIONS);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -34,19 +43,20 @@ const Index = () => {
     setSidebarOpen(false);
   };
 
-  const handleSelectConversation = (id: string) => {
+  const handleSelectConversation = async (id: string) => {
     const conv = conversations.find(c => c.id === id);
     if (conv) {
       setActiveConvId(id);
-      setCurrentMessages(conv.messages);
+      const msgs = await loadMessages(id);
+      setCurrentMessages(msgs);
       const persona = personas.find(p => p.id === conv.personaId);
       if (persona) setSelectedPersona(persona);
     }
     setSidebarOpen(false);
   };
 
-  const handleDeleteConversation = (id: string) => {
-    setConversations(prev => prev.filter(c => c.id !== id));
+  const handleDeleteConversation = async (id: string) => {
+    await deleteConversation(id);
     if (activeConvId === id) {
       setActiveConvId(null);
       setCurrentMessages([]);
@@ -64,20 +74,20 @@ const Index = () => {
     const newMessages = [...currentMessages, userMsg];
     setCurrentMessages(newMessages);
 
-    // Create or update conversation
-    if (!activeConvId) {
-      const newConv: Conversation = {
-        id: crypto.randomUUID(),
-        title: text.slice(0, 40) + (text.length > 40 ? '...' : ''),
-        personaId: selectedPersona.id,
-        messages: newMessages,
-        updatedAt: new Date(),
-      };
-      setConversations(prev => [newConv, ...prev]);
-      setActiveConvId(newConv.id);
+    let convId = activeConvId;
+
+    // Create conversation in DB if new
+    if (!convId) {
+      const title = text.slice(0, 40) + (text.length > 40 ? '...' : '');
+      convId = await createConversation(title, selectedPersona.id);
+      if (convId) setActiveConvId(convId);
     }
 
-    // Send message to WordPress plugin backend
+    // Save user message
+    if (convId) {
+      await saveMessage(convId, 'user', text);
+    }
+
     setIsTyping(true);
 
     let replyContent: string;
@@ -100,15 +110,14 @@ const Index = () => {
     setCurrentMessages(updatedMessages);
     setIsTyping(false);
 
-    // Update conversation
-    setConversations(prev =>
-      prev.map(c =>
-        c.id === activeConvId
-          ? { ...c, messages: updatedMessages, updatedAt: new Date() }
-          : c
-      )
-    );
+    // Save AI message
+    if (convId) {
+      await saveMessage(convId, 'assistant', replyContent, selectedPersona.id);
+    }
   };
+
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
+  const initials = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="flex h-dvh bg-background overflow-hidden">
@@ -123,11 +132,12 @@ const Index = () => {
         onViewChange={(view) => { setActiveView(view); setSidebarOpen(false); }}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        userName={displayName}
+        userInitial={initials}
+        onSignOut={signOut}
       />
 
-      {/* Main chat area */}
       <main className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
         <header className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -135,9 +145,16 @@ const Index = () => {
           >
             <Menu className="w-5 h-5 text-muted-foreground" />
           </button>
+          <div className="flex-1" />
+          <button
+            onClick={signOut}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="w-4 h-4 text-muted-foreground" />
+          </button>
         </header>
 
-        {/* View content */}
         {activeView === 'leaderboard' ? (
           <LeaderboardView onBackToChat={() => setActiveView('chat')} />
         ) : activeView === 'profile' ? (
@@ -157,7 +174,6 @@ const Index = () => {
               </div>
             )}
 
-            {/* Input area */}
             <div className="shrink-0 pb-4 pt-2">
               <ChatInput onSend={handleSend} disabled={isTyping} />
             </div>
