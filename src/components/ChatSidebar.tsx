@@ -16,6 +16,9 @@ interface ChatSidebarProps {
   onViewChange: (view: SidebarView) => void;
   isOpen: boolean;
   onClose: () => void;
+  userName?: string;
+  userInitial?: string;
+  onSignOut?: () => void;
 }
 
 const navItems = [
