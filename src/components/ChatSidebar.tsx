@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X } from 'lucide-react';
+import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut } from 'lucide-react';
 import { Conversation, Persona } from '@/lib/types';
 import { toast } from 'sonner';
 
