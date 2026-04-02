@@ -1,10 +1,9 @@
 import { useState, createContext, useContext, ReactNode } from 'react';
-import { getWPUserInfo } from '@/lib/wp-api';
 
 /**
  * Lightweight auth context for WordPress mode.
- * WordPress handles authentication via cookies — we just read the state.
- * The versace22-enqueue.php should pass user_logged_in + user_display_name.
+ * WordPress handles authentication via cookies — we read state from
+ * versace22_chat localized data injected by versace22-enqueue.php.
  */
 
 interface WPAuthContextType {
@@ -23,27 +22,44 @@ const WPAuthContext = createContext<WPAuthContextType>({
   profile: null,
 });
 
-export function WPAuthProvider({ children }: { children: ReactNode }) {
-  const wpUser = getWPUserInfo();
+function getWPUserData() {
+  const w = window as any;
+  const cfg = w.versace22_chat;
+  if (!cfg) return null;
 
-  // In WP mode, if user is logged in via WP cookies, treat them as authenticated
+  const isLoggedIn = !!cfg.user_logged_in;
+  return {
+    isLoggedIn,
+    displayName: cfg.user_display_name || (isLoggedIn ? 'User' : 'Guest'),
+    email: cfg.user_email || '',
+    avatar: cfg.user_avatar || '',
+    logoutUrl: cfg.logout_url || '',
+  };
+}
+
+export function WPAuthProvider({ children }: { children: ReactNode }) {
+  const wpData = getWPUserData();
+
   const [user] = useState<WPAuthContextType['user']>(
-    wpUser.isLoggedIn
-      ? { id: 'wp-user', email: undefined, created_at: undefined }
-      : null
+    wpData?.isLoggedIn
+      ? { id: 'wp-user', email: wpData.email || undefined, created_at: undefined }
+      : wpData
+        ? { id: 'wp-guest', email: undefined, created_at: undefined }
+        : null
   );
 
   const [profile] = useState<WPAuthContextType['profile']>(
-    wpUser.isLoggedIn
-      ? { display_name: wpUser.displayName, avatar_url: null }
-      : { display_name: wpUser.displayName, avatar_url: null }
+    wpData
+      ? {
+          display_name: wpData.displayName,
+          avatar_url: wpData.avatar || null,
+        }
+      : null
   );
 
   const signOut = async () => {
-    // In WP, sign out by redirecting to WP logout URL
-    const w = window as any;
-    if (w.versace22_chat?.logout_url) {
-      window.location.href = w.versace22_chat.logout_url;
+    if (wpData?.logoutUrl) {
+      window.location.href = wpData.logoutUrl;
     }
   };
 
