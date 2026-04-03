@@ -39,7 +39,8 @@ export function getWPSessionId(): string {
 
 export async function sendMessageToWP(
   message: string,
-  attachment?: { url: string; type: string; data?: string } | null
+  attachment?: { url: string; type: string; data?: string } | null,
+  model?: string
 ): Promise<string> {
   const config = getWPConfig();
   if (!config) throw new Error('WordPress config not available');
@@ -50,6 +51,7 @@ export async function sendMessageToWP(
   formData.append('persona_id', String(config.personaId));
   formData.append('message', message);
   formData.append('session_id', config.sessionId);
+  if (model) formData.append('model', model);
 
   if (attachment) {
     formData.append('has_attachment', '1');

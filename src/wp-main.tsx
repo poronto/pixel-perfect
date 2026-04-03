@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WPAuthProvider } from "@/hooks/useWPAuth";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -51,21 +52,23 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
 const WPApp = () => (
   <QueryClientProvider client={queryClient}>
-    <WPAuthProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <MemoryRouter>
-            <Routes>
-              <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/" element={<WPProtectedRoute><Index /></WPProtectedRoute>} />
-            </Routes>
-          </MemoryRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </WPAuthProvider>
+    <ThemeProvider>
+      <WPAuthProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <MemoryRouter>
+              <Routes>
+                <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/" element={<WPProtectedRoute><Index /></WPProtectedRoute>} />
+              </Routes>
+            </MemoryRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </WPAuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

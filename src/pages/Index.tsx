@@ -73,7 +73,8 @@ const Index = () => {
 
   const handleSend = async (
     text: string,
-    attachment?: { url: string; type: string; data?: string } | null
+    attachment?: { url: string; type: string; data?: string } | null,
+    model?: string
   ) => {
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -101,7 +102,7 @@ const Index = () => {
 
     let replyContent: string;
     try {
-      replyContent = await sendMessageToWP(text, attachment);
+      replyContent = await sendMessageToWP(text, attachment, model);
     } catch (error) {
       console.error('Chat API error:', error);
       replyContent = `⚠️ Error: ${error instanceof Error ? error.message : 'Failed to get response'}. Please check your API settings in WordPress admin.`;
@@ -132,6 +133,39 @@ const Index = () => {
     if (wpMode) {
       setTimeout(() => fetchConversations(), 500);
     }
+  };
+
+  const handleRegenerate = async (messageIndex: number) => {
+    // Find the user message before this assistant message
+    const userMsg = currentMessages.slice(0, messageIndex).reverse().find(m => m.role === 'user');
+    if (!userMsg) return;
+
+    // Remove the old assistant message
+    const updated = currentMessages.filter((_, i) => i !== messageIndex);
+    setCurrentMessages(updated);
+
+    // Re-send the user's message
+    setIsTyping(true);
+    let replyContent: string;
+    try {
+      replyContent = await sendMessageToWP(userMsg.content);
+    } catch (error) {
+      replyContent = `⚠️ Error: ${error instanceof Error ? error.message : 'Failed to regenerate'}`;
+    }
+
+    const aiMsgId = crypto.randomUUID();
+    const aiMsg: Message = {
+      id: aiMsgId,
+      role: 'assistant',
+      content: replyContent,
+      timestamp: new Date(),
+      persona: selectedPersona,
+    };
+
+    setCurrentMessages([...updated, aiMsg]);
+    setIsTyping(false);
+    setStreamingMessageId(aiMsgId);
+    setTimeout(() => setStreamingMessageId(null), Math.max(replyContent.length * 15, 3000));
   };
 
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
@@ -192,6 +226,7 @@ const Index = () => {
                     messages={currentMessages}
                     isTyping={isTyping}
                     streamingMessageId={streamingMessageId}
+                    onRegenerate={handleRegenerate}
                   />
                   <div ref={messagesEndRef} />
                 </div>

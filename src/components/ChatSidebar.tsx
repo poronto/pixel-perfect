@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut } from 'lucide-react';
+import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon } from 'lucide-react';
 import { Conversation, Persona } from '@/lib/types';
+import { useTheme } from '@/hooks/useTheme';
 import { toast } from 'sonner';
 
 export type SidebarView = 'chat' | 'leaderboard' | 'profile' | 'refer';
@@ -47,6 +48,7 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [findUsOpen, setFindUsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const filtered = conversations.filter(c =>
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -176,7 +178,16 @@ export function ChatSidebar({
         </div>
 
         {/* User */}
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-3 border-t border-sidebar-border space-y-2">
+          <div className="flex items-center justify-between px-3">
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-md hover:bg-sidebar-accent transition-colors"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-muted-foreground" /> : <Moon className="w-4 h-4 text-muted-foreground" />}
+            </button>
+          </div>
           <div className="flex items-center gap-3 px-3 py-2">
             {avatarUrl ? (
               <img src={avatarUrl} alt={userName} className="w-8 h-8 rounded-full object-cover shrink-0" />

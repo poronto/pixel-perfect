@@ -1,13 +1,39 @@
+import { Pencil, Lightbulb, Search, BookOpen } from 'lucide-react';
+
 interface WelcomeScreenProps {
   personaName: string;
   onSendSuggestion: (text: string) => void;
 }
 
-const suggestions = [
-  'What can you help me with today?',
-  'Tell me about your expertise',
-  'Help me brainstorm an idea',
+const categories = [
+  { icon: Pencil, label: 'Write', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  { icon: Lightbulb, label: 'Plan', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  { icon: Search, label: 'Research', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { icon: BookOpen, label: 'Learn', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
 ];
+
+const suggestions: Record<string, string[]> = {
+  Write: [
+    'Write a professional email for me',
+    'Help me draft a blog post',
+    'Create a social media caption',
+  ],
+  Plan: [
+    'Help me plan a weekly schedule',
+    'Create a project roadmap',
+    'Plan a marketing strategy',
+  ],
+  Research: [
+    'Summarize the latest trends in AI',
+    'Compare different approaches to...',
+    'Find key facts about a topic',
+  ],
+  Learn: [
+    'Explain a complex concept simply',
+    'Quiz me on a topic',
+    'Teach me something new today',
+  ],
+};
 
 export function WelcomeScreen({ personaName, onSendSuggestion }: WelcomeScreenProps) {
   return (
@@ -29,11 +55,31 @@ export function WelcomeScreen({ personaName, onSendSuggestion }: WelcomeScreenPr
         </h2>
       </div>
 
+      {/* Category chips */}
       <div
         className="mt-8 flex flex-wrap justify-center gap-2"
-        style={{ animation: 'fade-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.25s both' }}
+        style={{ animation: 'fade-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.2s both' }}
       >
-        {suggestions.map((s) => (
+        {categories.map((cat) => (
+          <button
+            key={cat.label}
+            onClick={() => onSendSuggestion(suggestions[cat.label][0])}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
+                       border transition-all duration-200 active:scale-[0.97]
+                       hover:brightness-110 ${cat.color}`}
+          >
+            <cat.icon className="w-4 h-4" />
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Suggestion prompts */}
+      <div
+        className="mt-4 flex flex-wrap justify-center gap-2 max-w-lg"
+        style={{ animation: 'fade-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.35s both' }}
+      >
+        {['What can you help me with today?', 'Tell me about your expertise', 'Help me brainstorm an idea'].map((s) => (
           <button
             key={s}
             onClick={() => onSendSuggestion(s)}
