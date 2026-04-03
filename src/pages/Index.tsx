@@ -226,6 +226,7 @@ const Index = () => {
                     messages={currentMessages}
                     isTyping={isTyping}
                     streamingMessageId={streamingMessageId}
+                    onRegenerate={handleRegenerate}
                   />
                   <div ref={messagesEndRef} />
                 </div>
