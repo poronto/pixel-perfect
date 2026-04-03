@@ -135,6 +135,39 @@ const Index = () => {
     }
   };
 
+  const handleRegenerate = async (messageIndex: number) => {
+    // Find the user message before this assistant message
+    const userMsg = currentMessages.slice(0, messageIndex).reverse().find(m => m.role === 'user');
+    if (!userMsg) return;
+
+    // Remove the old assistant message
+    const updated = currentMessages.filter((_, i) => i !== messageIndex);
+    setCurrentMessages(updated);
+
+    // Re-send the user's message
+    setIsTyping(true);
+    let replyContent: string;
+    try {
+      replyContent = await sendMessageToWP(userMsg.content);
+    } catch (error) {
+      replyContent = `⚠️ Error: ${error instanceof Error ? error.message : 'Failed to regenerate'}`;
+    }
+
+    const aiMsgId = crypto.randomUUID();
+    const aiMsg: Message = {
+      id: aiMsgId,
+      role: 'assistant',
+      content: replyContent,
+      timestamp: new Date(),
+      persona: selectedPersona,
+    };
+
+    setCurrentMessages([...updated, aiMsg]);
+    setIsTyping(false);
+    setStreamingMessageId(aiMsgId);
+    setTimeout(() => setStreamingMessageId(null), Math.max(replyContent.length * 15, 3000));
+  };
+
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
   const initials = displayName.charAt(0).toUpperCase();
   const avatarUrl = profile?.avatar_url || undefined;
