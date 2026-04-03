@@ -48,6 +48,7 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [findUsOpen, setFindUsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const filtered = conversations.filter(c =>
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
