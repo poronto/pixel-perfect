@@ -1,15 +1,39 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
+import { Copy, Check, RefreshCw } from 'lucide-react';
 import { Message } from '@/lib/types';
 import { MarkdownMessage } from './MarkdownMessage';
 import { StreamingMessage } from './StreamingMessage';
+import { toast } from 'sonner';
 
 interface ChatMessagesProps {
   messages: Message[];
   isTyping?: boolean;
   streamingMessageId?: string | null;
+  onRegenerate?: (messageIndex: number) => void;
 }
 
-export function ChatMessages({ messages, isTyping, streamingMessageId }: ChatMessagesProps) {
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(text);
+    setCopied(true);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+      title="Copy message"
+    >
+      {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
+
+export function ChatMessages({ messages, isTyping, streamingMessageId, onRegenerate }: ChatMessagesProps) {
   if (messages.length === 0 && !isTyping) return null;
 
   return (
@@ -28,19 +52,41 @@ export function ChatMessages({ messages, isTyping, streamingMessageId }: ChatMes
               {msg.persona?.avatar?.charAt(0) || 'A'}
             </div>
           )}
-          <div
-            className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed
-              ${msg.role === 'user'
-                ? 'bg-chat-user text-foreground rounded-br-md'
-                : 'bg-chat-ai text-foreground rounded-bl-md'
-              }`}
-          >
-            {msg.role === 'assistant' && msg.id === streamingMessageId ? (
-              <StreamingMessage content={msg.content} />
-            ) : msg.role === 'assistant' ? (
-              <MarkdownMessage content={msg.content} />
-            ) : (
-              <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere">{msg.content}</p>
+          <div className="flex flex-col max-w-[75%]">
+            <div
+              className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
+                ${msg.role === 'user'
+                  ? 'bg-chat-user text-foreground rounded-br-md'
+                  : 'bg-chat-ai text-foreground rounded-bl-md'
+                }`}
+            >
+              {msg.role === 'assistant' && msg.id === streamingMessageId ? (
+                <StreamingMessage content={msg.content} />
+              ) : msg.role === 'assistant' ? (
+                <MarkdownMessage content={msg.content} />
+              ) : (
+                <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere">{msg.content}</p>
+              )}
+            </div>
+
+            {/* Copy / Regenerate toolbar for AI messages */}
+            {msg.role === 'assistant' && msg.id !== streamingMessageId && (
+              <div className="flex items-center gap-1 mt-1 ml-1 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                   style={{ opacity: undefined }}
+                   onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                   onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
+              >
+                <CopyButton text={msg.content} />
+                {onRegenerate && (
+                  <button
+                    onClick={() => onRegenerate(i)}
+                    className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="Regenerate response"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
