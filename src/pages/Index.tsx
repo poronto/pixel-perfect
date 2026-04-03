@@ -73,7 +73,8 @@ const Index = () => {
 
   const handleSend = async (
     text: string,
-    attachment?: { url: string; type: string; data?: string } | null
+    attachment?: { url: string; type: string; data?: string } | null,
+    model?: string
   ) => {
     const userMsg: Message = {
       id: crypto.randomUUID(),
