@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, RefreshCw } from 'lucide-react';
+import { Copy, Check, RefreshCw, ExternalLink } from 'lucide-react';
 import { Message } from '@/lib/types';
 import { MarkdownMessage } from './MarkdownMessage';
 import { StreamingMessage } from './StreamingMessage';
@@ -33,6 +33,39 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+/** Parse citation links like [1](url) or [Source](url) from the AI response */
+function CitationLinks({ content }: { content: string }) {
+  const citationRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  const citations: { label: string; url: string }[] = [];
+  let match;
+
+  while ((match = citationRegex.exec(content)) !== null) {
+    if (!citations.some(c => c.url === match[2])) {
+      citations.push({ label: match[1], url: match[2] });
+    }
+  }
+
+  if (citations.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-border/50">
+      {citations.slice(0, 5).map((cite, i) => (
+        <a
+          key={i}
+          href={cite.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                     bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+        >
+          <ExternalLink className="w-2.5 h-2.5" />
+          {cite.label.length > 25 ? cite.label.slice(0, 25) + '…' : cite.label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 export function ChatMessages({ messages, isTyping, streamingMessageId, onRegenerate }: ChatMessagesProps) {
   if (messages.length === 0 && !isTyping) return null;
 
@@ -63,7 +96,10 @@ export function ChatMessages({ messages, isTyping, streamingMessageId, onRegener
               {msg.role === 'assistant' && msg.id === streamingMessageId ? (
                 <StreamingMessage content={msg.content} />
               ) : msg.role === 'assistant' ? (
-                <MarkdownMessage content={msg.content} />
+                <>
+                  <MarkdownMessage content={msg.content} />
+                  <CitationLinks content={msg.content} />
+                </>
               ) : (
                 <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere">{msg.content}</p>
               )}

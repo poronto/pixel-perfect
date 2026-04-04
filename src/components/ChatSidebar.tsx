@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon } from 'lucide-react';
+import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon, Sparkles } from 'lucide-react';
 import { Conversation, Persona } from '@/lib/types';
+import { ConversationFolders } from './ConversationFolders';
 import { useTheme } from '@/hooks/useTheme';
-import { toast } from 'sonner';
 
-export type SidebarView = 'chat' | 'leaderboard' | 'profile' | 'refer';
+export type SidebarView = 'chat' | 'leaderboard' | 'profile' | 'refer' | 'personas';
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -25,6 +25,7 @@ interface ChatSidebarProps {
 
 const navItems = [
   { icon: MessageCircle, label: 'Chat', action: 'chat' },
+  { icon: Sparkles, label: 'Personas', action: 'personas' },
   { icon: Trophy, label: 'Leaderboard', badge: 'BETA', action: 'leaderboard' },
   { icon: User, label: 'Profile', action: 'profile' },
   { icon: Gift, label: 'Refer for rewards', action: 'refer' },
@@ -69,7 +70,6 @@ export function ChatSidebar({
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden"
@@ -87,7 +87,6 @@ export function ChatSidebar({
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        {/* Header */}
         <div className="flex items-center justify-end px-5 pt-5 pb-3">
           <button
             onClick={onClose}
@@ -97,7 +96,6 @@ export function ChatSidebar({
           </button>
         </div>
 
-        {/* Nav items */}
         <nav className="px-3 space-y-0.5">
           {navItems.map((item) => (
             <button
@@ -148,8 +146,17 @@ export function ChatSidebar({
           </div>
         </div>
 
+        {/* Conversation Folders */}
+        <div className="px-3 mt-3">
+          <ConversationFolders
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onSelectConversation={onSelectConversation}
+          />
+        </div>
+
         {/* Conversations */}
-        <div className="flex-1 overflow-y-auto px-3 mt-3 space-y-1">
+        <div className="flex-1 overflow-y-auto px-3 mt-2 space-y-1">
           <button
             onClick={onNewConversation}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm

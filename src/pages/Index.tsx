@@ -4,6 +4,8 @@ import { ChatSidebar, SidebarView } from '@/components/ChatSidebar';
 import { ChatInput } from '@/components/ChatInput';
 import { ChatMessages } from '@/components/ChatMessages';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
+import { PersonaGallery } from '@/components/PersonaGallery';
+import { SpecializedModesBar, SpecializedMode, SPECIALIZED_MODES } from '@/components/SpecializedModes';
 import { LeaderboardView, ProfileView, ReferView } from '@/components/SidebarViews';
 import { DEFAULT_PERSONAS, Message, Persona } from '@/lib/types';
 import { sendMessageToWP, isWordPress } from '@/lib/wp-api';
@@ -15,7 +17,6 @@ const Index = () => {
   const { user, signOut, profile } = useAuth();
   const wpMode = isWordPress();
 
-  // Use WP conversations hook in WordPress mode, Supabase otherwise
   const supaConv = useConversations();
   const wpConv = useWPConversations();
   const {
@@ -35,6 +36,7 @@ const Index = () => {
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const [activeMode, setActiveMode] = useState<SpecializedMode>(SPECIALIZED_MODES[0]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -71,11 +73,20 @@ const Index = () => {
     }
   };
 
+  const handleSelectPersona = (persona: Persona) => {
+    setSelectedPersona(persona);
+    setActiveView('chat');
+    handleNewConversation();
+  };
+
   const handleSend = async (
     text: string,
     attachment?: { url: string; type: string; data?: string } | null,
-    model?: string
   ) => {
+    // Prepend specialized mode prefix if active
+    const modePrefix = activeMode.systemPrefix;
+    const fullText = modePrefix ? `${modePrefix}\n\n${text}` : text;
+
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -102,7 +113,7 @@ const Index = () => {
 
     let replyContent: string;
     try {
-      replyContent = await sendMessageToWP(text, attachment, model);
+      replyContent = await sendMessageToWP(fullText, attachment);
     } catch (error) {
       console.error('Chat API error:', error);
       replyContent = `⚠️ Error: ${error instanceof Error ? error.message : 'Failed to get response'}. Please check your API settings in WordPress admin.`;
@@ -121,7 +132,6 @@ const Index = () => {
     setCurrentMessages(updatedMessages);
     setIsTyping(false);
 
-    // Trigger streaming effect for the new AI message
     setStreamingMessageId(aiMsgId);
     setTimeout(() => setStreamingMessageId(null), Math.max(replyContent.length * 15, 3000));
 
@@ -129,22 +139,18 @@ const Index = () => {
       await saveMessage(convId, 'assistant', replyContent, selectedPersona.id);
     }
 
-    // In WP mode, refresh conversation list after a new message
     if (wpMode) {
       setTimeout(() => fetchConversations(), 500);
     }
   };
 
   const handleRegenerate = async (messageIndex: number) => {
-    // Find the user message before this assistant message
     const userMsg = currentMessages.slice(0, messageIndex).reverse().find(m => m.role === 'user');
     if (!userMsg) return;
 
-    // Remove the old assistant message
     const updated = currentMessages.filter((_, i) => i !== messageIndex);
     setCurrentMessages(updated);
 
-    // Re-send the user's message
     setIsTyping(true);
     let replyContent: string;
     try {
@@ -199,10 +205,15 @@ const Index = () => {
           >
             <Menu className="w-5 h-5 text-muted-foreground" />
           </button>
-          <div className="flex-1" />
+          <div className="flex-1 overflow-x-auto">
+            <SpecializedModesBar
+              activeMode={activeMode.id}
+              onSelectMode={setActiveMode}
+            />
+          </div>
           <button
             onClick={signOut}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            className="p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
             title="Sign out"
           >
             <LogOut className="w-4 h-4 text-muted-foreground" />
@@ -215,6 +226,13 @@ const Index = () => {
           <ProfileView onBackToChat={() => setActiveView('chat')} />
         ) : activeView === 'refer' ? (
           <ReferView onBackToChat={() => setActiveView('chat')} />
+        ) : activeView === 'personas' ? (
+          <PersonaGallery
+            personas={personas}
+            selectedPersona={selectedPersona}
+            onSelectPersona={handleSelectPersona}
+            onBack={() => setActiveView('chat')}
+          />
         ) : (
           <>
             {currentMessages.length === 0 ? (
