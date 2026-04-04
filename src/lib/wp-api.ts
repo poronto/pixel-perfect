@@ -40,7 +40,6 @@ export function getWPSessionId(): string {
 export async function sendMessageToWP(
   message: string,
   attachment?: { url: string; type: string; data?: string } | null,
-  model?: string
 ): Promise<string> {
   const config = getWPConfig();
   if (!config) throw new Error('WordPress config not available');
