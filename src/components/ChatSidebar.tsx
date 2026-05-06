@@ -261,7 +261,7 @@ export function ChatSidebar({
         </div>
 
         {/* User */}
-        <div className="p-3 border-t border-sidebar-border space-y-2">
+        <div className="p-3 border-t border-sidebar-border space-y-2 relative">
           <div className="flex items-center justify-between px-3">
             <button
               onClick={toggleTheme}
@@ -271,7 +271,10 @@ export function ChatSidebar({
               {theme === 'dark' ? <Sun className="w-4 h-4 text-muted-foreground" /> : <Moon className="w-4 h-4 text-muted-foreground" />}
             </button>
           </div>
-          <div className="flex items-center gap-3 px-3 py-2">
+          <button
+            onClick={() => setAccountMenuOpen((v) => !v)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent transition-colors text-left"
+          >
             {avatarUrl ? (
               <img src={avatarUrl} alt={userName} className="w-8 h-8 rounded-full object-cover shrink-0" />
             ) : (
@@ -280,12 +283,18 @@ export function ChatSidebar({
               </div>
             )}
             <span className="text-sm font-medium text-foreground flex-1 truncate">{userName}</span>
-            {onSignOut && (
-              <button onClick={onSignOut} className="p-1.5 rounded-md hover:bg-sidebar-accent transition-colors" title="Sign out">
-                <LogOut className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-            )}
-          </div>
+            <MoreVertical className="w-3.5 h-3.5 text-muted-foreground" />
+          </button>
+
+          <UserAccountMenu
+            open={accountMenuOpen}
+            onClose={() => setAccountMenuOpen(false)}
+            onSignOut={onSignOut}
+            userName={userName}
+            userEmail={userEmail}
+            avatarUrl={avatarUrl}
+            userInitial={userInitial}
+          />
         </div>
       </aside>
     </>
