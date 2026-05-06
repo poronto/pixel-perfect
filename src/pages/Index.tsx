@@ -15,8 +15,9 @@ import { useConversations } from '@/hooks/useConversations';
 import { useWPConversations } from '@/hooks/useWPConversations';
 
 const Index = () => {
-  const { user, signOut, profile } = useAuth();
+  const { user, signOut, profile, loading: authLoading } = useAuth();
   const wpMode = isWordPress();
+  const [showAuth, setShowAuth] = useState(false);
 
   const supaConv = useConversations();
   const wpConv = useWPConversations();
