@@ -47,12 +47,14 @@ export function ChatSidebar({
   onClose,
   userName = 'User',
   userInitial = 'U',
+  userEmail,
   avatarUrl,
   onSignOut,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [findUsOpen, setFindUsOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { toggleStar, toggleArchive, isStarred, isArchived } = useConversationFlags();
   const menuRef = useRef<HTMLDivElement>(null);
