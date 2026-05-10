@@ -291,6 +291,7 @@ const Index = () => {
                     isTyping={isTyping}
                     streamingMessageId={streamingMessageId}
                     onRegenerate={handleRegenerate}
+                    onOpenArtifact={setOpenArtifact}
                   />
                   <div ref={messagesEndRef} />
                 </div>
@@ -310,6 +311,9 @@ const Index = () => {
           onClose={user ? () => setShowAuth(false) : undefined}
         />
       )}
+
+      <ArtifactCanvas artifact={openArtifact} onClose={() => setOpenArtifact(null)} />
+      <MemoryDrawer open={memoryOpen} onClose={() => setMemoryOpen(false)} />
     </div>
   );
 };
