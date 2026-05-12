@@ -24,6 +24,7 @@ interface ChatSidebarProps {
   userInitial?: string;
   avatarUrl?: string;
   onSignOut?: () => void;
+  onOpenMemories?: () => void;
 }
 
 const navItems = [
