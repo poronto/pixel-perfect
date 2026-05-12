@@ -16,6 +16,8 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import { OpenRouterFreeModelsCard } from "./components/OpenRouterFreeModelsCard";
+import { isWPSettingsPage } from "./lib/wp-api";
 import "./wp-index.css";
 
 const queryClient = new QueryClient();
