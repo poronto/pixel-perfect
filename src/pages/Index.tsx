@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, LogOut, Brain } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { ChatSidebar, SidebarView } from '@/components/ChatSidebar';
 import { ChatInput } from '@/components/ChatInput';
 import { ChatMessages } from '@/components/ChatMessages';
@@ -11,7 +11,7 @@ import { AuthModal } from '@/components/AuthModal';
 import { ArtifactCanvas } from '@/components/ArtifactCanvas';
 import { MemoryDrawer } from '@/components/MemoryDrawer';
 import { DEFAULT_PERSONAS, Message, MessageArtifact, Persona } from '@/lib/types';
-import { sendMessageToWP, isWordPress, isWPAdmin, ParsedArtifact } from '@/lib/wp-api';
+import { sendMessageToWP, isWordPress, ParsedArtifact } from '@/lib/wp-api';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversations } from '@/hooks/useConversations';
 import { useWPConversations } from '@/hooks/useWPConversations';
@@ -215,6 +215,7 @@ const Index = () => {
         userInitial={initials}
         avatarUrl={avatarUrl}
         onSignOut={signOut}
+        onOpenMemories={() => setMemoryOpen(true)}
       />
 
       <main className="flex-1 flex flex-col min-w-0">
@@ -231,15 +232,6 @@ const Index = () => {
               onSelectMode={setActiveMode}
             />
           </div>
-          {isWordPress() && isWPAdmin() && (
-            <button
-              onClick={() => setMemoryOpen(true)}
-              className="p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
-              title="Memories"
-            >
-              <Brain className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
           {user ? (
             <button
               onClick={signOut}

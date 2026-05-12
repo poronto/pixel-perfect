@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon, Sparkles, MoreVertical, Star, Archive, Trash2 } from 'lucide-react';
+import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon, Sparkles, MoreVertical, Star, Archive, Trash2, Brain } from 'lucide-react';
+import { ProjectsSection } from './ProjectsSection';
+import { isWordPress, isWPAdmin } from '@/lib/wp-api';
 import { Conversation, Persona } from '@/lib/types';
 import { ConversationFolders } from './ConversationFolders';
 import { useTheme } from '@/hooks/useTheme';
@@ -22,6 +24,7 @@ interface ChatSidebarProps {
   userInitial?: string;
   avatarUrl?: string;
   onSignOut?: () => void;
+  onOpenMemories?: () => void;
 }
 
 const navItems = [
@@ -47,6 +50,7 @@ export function ChatSidebar({
   userInitial = 'U',
   avatarUrl,
   onSignOut,
+  onOpenMemories,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [findUsOpen, setFindUsOpen] = useState(false);
@@ -141,6 +145,9 @@ export function ChatSidebar({
           )}
         </nav>
 
+        {/* Projects (admin-only, top of sidebar above conversations) */}
+        <ProjectsSection />
+
         {/* Search */}
         <div className="px-3 mt-4">
           <div className="relative">
@@ -169,14 +176,25 @@ export function ChatSidebar({
 
         {/* Conversations */}
         <div className="flex-1 overflow-y-auto px-3 mt-2 space-y-1">
-          <button
-            onClick={onNewConversation}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm
-                       text-primary hover:bg-primary/10 transition-colors font-medium"
-          >
-            <Plus className="w-4 h-4" />
-            New conversation
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onNewConversation}
+              className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm
+                         text-primary hover:bg-primary/10 transition-colors font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              New conversation
+            </button>
+            {isWordPress() && isWPAdmin() && onOpenMemories && (
+              <button
+                onClick={onOpenMemories}
+                title="Memories"
+                className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Brain className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
           {visible.map((conv) => {
             const starred = isStarred(conv.id);
