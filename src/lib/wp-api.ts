@@ -277,3 +277,8 @@ export function getWPUserInfo(): { isLoggedIn: boolean; displayName: string } {
   }
   return { isLoggedIn: false, displayName: 'Guest' };
 }
+
+export function isWPUserLoggedIn(): boolean {
+  const w = window as any;
+  return !!w.versace22_chat?.user_logged_in;
+}
