@@ -8,6 +8,9 @@ interface WPConfig {
   nonce: string;
   personaId: number;
   sessionId: string;
+  loginUrl?: string;
+  registerUrl?: string;
+  logoutUrl?: string;
 }
 
 function getWPConfig(): WPConfig | null {
@@ -18,6 +21,9 @@ function getWPConfig(): WPConfig | null {
       nonce: w.versace22_chat.nonce,
       personaId: parseInt(w.versace22_chat.persona_id, 10) || 1,
       sessionId: w.versace22_chat.session_id || 'sess_' + crypto.randomUUID(),
+      loginUrl: w.versace22_chat.login_url,
+      registerUrl: w.versace22_chat.register_url,
+      logoutUrl: w.versace22_chat.logout_url,
     };
   }
   return null;
@@ -35,11 +41,23 @@ export function getWPSessionId(): string {
   return getWPConfig()?.sessionId ?? '';
 }
 
+export function getWPAuthLinks(): { loginUrl: string; registerUrl: string; logoutUrl: string } {
+  const config = getWPConfig();
+  const origin = window.location.origin;
+  const currentUrl = window.location.href;
+  return {
+    loginUrl: config?.loginUrl || `${origin}/wp-login.php?redirect_to=${encodeURIComponent(currentUrl)}`,
+    registerUrl: config?.registerUrl || `${origin}/wp-login.php?action=register`,
+    logoutUrl: config?.logoutUrl || `${origin}/wp-login.php?action=logout`,
+  };
+}
+
 // ===================== CHAT =====================
 
 export async function sendMessageToWP(
   message: string,
   attachment?: { url: string; type: string; data?: string } | null,
+  personaId?: string | number,
 ): Promise<string> {
   const config = getWPConfig();
   if (!config) throw new Error('WordPress config not available');
@@ -47,7 +65,7 @@ export async function sendMessageToWP(
   const formData = new FormData();
   formData.append('action', 'aicpp_chat');
   formData.append('nonce', config.nonce);
-  formData.append('persona_id', String(config.personaId));
+  formData.append('persona_id', String(personaId || config.personaId));
   formData.append('message', message);
   formData.append('session_id', config.sessionId);
   
