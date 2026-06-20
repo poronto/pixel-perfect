@@ -53,6 +53,16 @@ const Index = () => {
   const [activeMode, setActiveMode] = useState<SpecializedMode>(SPECIALIZED_MODES[0]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const {
+    projects,
+    assignments: projectAssignments,
+    assignConversation,
+    getProjectForConversation,
+  } = useProjects();
+  const memory = useMemory();
+  const activeProjectId = getProjectForConversation(activeConvId);
+  const activeProject = projects.find((p) => p.id === activeProjectId) || null;
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
