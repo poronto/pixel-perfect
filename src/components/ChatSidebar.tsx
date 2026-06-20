@@ -51,6 +51,8 @@ export function ChatSidebar({
   userInitial = 'U',
   avatarUrl,
   onSignOut,
+  projects = [],
+  projectAssignments = {},
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [findUsOpen, setFindUsOpen] = useState(false);
