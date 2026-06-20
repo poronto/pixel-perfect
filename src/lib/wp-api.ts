@@ -305,3 +305,117 @@ export function isWPUserLoggedIn(): boolean {
   const w = window as any;
   return !!w.versace22_chat?.user_logged_in;
 }
+
+// ===================== PROJECTS =====================
+
+export interface WPProject {
+  id: number | string;
+  name: string;
+  description?: string;
+  custom_instructions?: string;
+  created_at?: string;
+}
+
+async function wpAjax(action: string, params: Record<string, string> = {}) {
+  const config = getWPConfig();
+  if (!config) throw new Error('WordPress config not available');
+  const formData = new FormData();
+  formData.append('action', action);
+  formData.append('nonce', config.nonce);
+  for (const [k, v] of Object.entries(params)) formData.append(k, v);
+  const response = await fetch(config.ajaxurl, { method: 'POST', body: formData });
+  if (!response.ok) throw new Error(`${action} error: ${response.status}`);
+  const result = await response.json();
+  if (!result.success) throw new Error(result.data?.message || `${action} failed`);
+  return result.data;
+}
+
+export async function getProjectsFromWP(): Promise<WPProject[]> {
+  if (!isWordPress()) return [];
+  try {
+    const data = await wpAjax('aicpp_get_projects');
+    return Array.isArray(data?.projects) ? data.projects : [];
+  } catch (err) {
+    console.error('getProjectsFromWP failed:', err);
+    return [];
+  }
+}
+
+export async function createProjectInWP(project: {
+  name: string;
+  description?: string;
+  custom_instructions?: string;
+}): Promise<WPProject | null> {
+  const data = await wpAjax('aicpp_create_project', {
+    name: project.name,
+    description: project.description || '',
+    custom_instructions: project.custom_instructions || '',
+  });
+  return data?.project || null;
+}
+
+export async function deleteProjectFromWP(id: string | number): Promise<boolean> {
+  try {
+    await wpAjax('aicpp_delete_project', { project_id: String(id) });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function assignConversationProjectWP(
+  conversationId: string | number,
+  projectId: string | number | null,
+): Promise<boolean> {
+  try {
+    await wpAjax('aicpp_assign_conversation_project', {
+      conversation_id: String(conversationId),
+      project_id: projectId === null ? '' : String(projectId),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ===================== MEMORY =====================
+
+export interface WPMemoryItem {
+  id: number | string;
+  content: string;
+  created_at?: string;
+}
+
+export async function getMemoriesFromWP(): Promise<WPMemoryItem[]> {
+  if (!isWordPress()) return [];
+  try {
+    const data = await wpAjax('aicpp_get_memories');
+    return Array.isArray(data?.memories) ? data.memories : [];
+  } catch (err) {
+    console.error('getMemoriesFromWP failed:', err);
+    return [];
+  }
+}
+
+export async function addMemoryToWP(content: string): Promise<WPMemoryItem | null> {
+  const data = await wpAjax('aicpp_add_memory', { content });
+  return data?.memory || null;
+}
+
+export async function deleteMemoryFromWP(id: string | number): Promise<boolean> {
+  try {
+    await wpAjax('aicpp_delete_memory', { memory_id: String(id) });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearMemoriesInWP(): Promise<boolean> {
+  try {
+    await wpAjax('aicpp_clear_memories');
+    return true;
+  } catch {
+    return false;
+  }
+}
