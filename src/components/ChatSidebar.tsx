@@ -22,6 +22,8 @@ interface ChatSidebarProps {
   userInitial?: string;
   avatarUrl?: string;
   onSignOut?: () => void;
+  projects?: Project[];
+  projectAssignments?: Record<string, string>;
 }
 
 const navItems = [
