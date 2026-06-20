@@ -170,6 +170,8 @@ export function ChatSidebar({
             conversations={conversations}
             activeConversationId={activeConversationId}
             onSelectConversation={onSelectConversation}
+            projects={projects}
+            assignments={projectAssignments}
           />
         </div>
 
