@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon, Sparkles, MoreVertical, Star, Archive, Trash2, FolderKanban, Brain } from 'lucide-react';
-import { Conversation, Persona } from '@/lib/types';
+import { Conversation, Persona, Project } from '@/lib/types';
 import { ConversationFolders } from './ConversationFolders';
 import { useTheme } from '@/hooks/useTheme';
 import { useConversationFlags } from '@/hooks/useConversationFlags';
