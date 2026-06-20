@@ -7,6 +7,9 @@ import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { PersonaGallery } from '@/components/PersonaGallery';
 import { SpecializedModesBar, SpecializedMode, SPECIALIZED_MODES } from '@/components/SpecializedModes';
 import { LeaderboardView, ProfileView, ReferView } from '@/components/SidebarViews';
+import { ProjectsView } from '@/components/ProjectsView';
+import { MemoryView } from '@/components/MemoryView';
+import { ProjectPicker } from '@/components/ProjectPicker';
 import { AuthModal } from '@/components/AuthModal';
 import { WPAuthModal } from '@/components/WPAuthModal';
 import { DEFAULT_PERSONAS, Message, Persona } from '@/lib/types';
@@ -16,6 +19,8 @@ import { useWPAuth } from '@/hooks/useWPAuth';
 import { useConversations } from '@/hooks/useConversations';
 import { useWPConversations } from '@/hooks/useWPConversations';
 import { useWPPersonas } from '@/hooks/useWPPersonas';
+import { useProjects } from '@/hooks/useProjects';
+import { useMemory } from '@/hooks/useMemory';
 
 const Index = () => {
   const wpMode = isWordPress();
@@ -47,6 +52,16 @@ const Index = () => {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [activeMode, setActiveMode] = useState<SpecializedMode>(SPECIALIZED_MODES[0]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    projects,
+    assignments: projectAssignments,
+    assignConversation,
+    getProjectForConversation,
+  } = useProjects();
+  const memory = useMemory();
+  const activeProjectId = getProjectForConversation(activeConvId);
+  const activeProject = projects.find((p) => p.id === activeProjectId) || null;
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -103,9 +118,15 @@ const Index = () => {
       return;
     }
 
-    // Prepend specialized mode prefix if active
+    // Build prepended context: memory preamble + project instructions + mode prefix
+    const memoryPreamble = memory.buildPreamble();
+    const projectInstructions = activeProject?.customInstructions
+      ? `Project context "${activeProject.name}":\n${activeProject.customInstructions}`
+      : '';
     const modePrefix = activeMode.systemPrefix;
-    const fullText = modePrefix ? `${modePrefix}\n\n${text}` : text;
+    const fullText = [memoryPreamble, projectInstructions, modePrefix, text]
+      .filter(Boolean)
+      .join('\n\n');
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -198,6 +219,11 @@ const Index = () => {
   const initials = displayName.charAt(0).toUpperCase();
   const avatarUrl = profile?.avatar_url || undefined;
 
+  const handleAssignProject = async (projectId: string | null) => {
+    if (!activeConvId) return;
+    await assignConversation(activeConvId, projectId);
+  };
+
   return (
     <div className="flex h-dvh bg-background overflow-hidden">
       <ChatSidebar
@@ -215,6 +241,8 @@ const Index = () => {
         userInitial={initials}
         avatarUrl={avatarUrl}
         onSignOut={signOut}
+        projects={projects}
+        projectAssignments={projectAssignments}
       />
 
       <main className="flex-1 flex flex-col min-w-0">
@@ -231,6 +259,12 @@ const Index = () => {
               onSelectMode={setActiveMode}
             />
           </div>
+          <ProjectPicker
+            projects={projects}
+            selectedProjectId={activeProjectId}
+            disabled={!activeConvId}
+            onSelect={handleAssignProject}
+          />
           {user ? (
             <button
               onClick={signOut}
@@ -270,6 +304,10 @@ const Index = () => {
             onSelectPersona={handleSelectPersona}
             onBack={() => setActiveView('chat')}
           />
+        ) : activeView === 'projects' ? (
+          <ProjectsView onBackToChat={() => setActiveView('chat')} />
+        ) : activeView === 'memory' ? (
+          <MemoryView onBackToChat={() => setActiveView('chat')} />
         ) : (
           <>
             {currentMessages.length === 0 ? (

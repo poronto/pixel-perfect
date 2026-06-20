@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon, Sparkles, MoreVertical, Star, Archive, Trash2 } from 'lucide-react';
-import { Conversation, Persona } from '@/lib/types';
+import { MessageCircle, Trophy, User, Gift, Globe, ChevronDown, Search, Plus, X, LogOut, Sun, Moon, Sparkles, MoreVertical, Star, Archive, Trash2, FolderKanban, Brain } from 'lucide-react';
+import { Conversation, Persona, Project } from '@/lib/types';
 import { ConversationFolders } from './ConversationFolders';
 import { useTheme } from '@/hooks/useTheme';
 import { useConversationFlags } from '@/hooks/useConversationFlags';
 
-export type SidebarView = 'chat' | 'leaderboard' | 'profile' | 'refer' | 'personas';
+export type SidebarView = 'chat' | 'leaderboard' | 'profile' | 'refer' | 'personas' | 'projects' | 'memory';
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -22,11 +22,15 @@ interface ChatSidebarProps {
   userInitial?: string;
   avatarUrl?: string;
   onSignOut?: () => void;
+  projects?: Project[];
+  projectAssignments?: Record<string, string>;
 }
 
 const navItems = [
   { icon: MessageCircle, label: 'Chat', action: 'chat' },
   { icon: Sparkles, label: 'Personas', action: 'personas' },
+  { icon: FolderKanban, label: 'Projects', action: 'projects' },
+  { icon: Brain, label: 'Memory', action: 'memory' },
   { icon: Trophy, label: 'Leaderboard', badge: 'BETA', action: 'leaderboard' },
   { icon: User, label: 'Profile', action: 'profile' },
   { icon: Gift, label: 'Refer for rewards', action: 'refer' },
@@ -47,6 +51,8 @@ export function ChatSidebar({
   userInitial = 'U',
   avatarUrl,
   onSignOut,
+  projects = [],
+  projectAssignments = {},
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [findUsOpen, setFindUsOpen] = useState(false);
@@ -164,6 +170,8 @@ export function ChatSidebar({
             conversations={conversations}
             activeConversationId={activeConversationId}
             onSelectConversation={onSelectConversation}
+            projects={projects}
+            assignments={projectAssignments}
           />
         </div>
 

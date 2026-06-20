@@ -21,6 +21,21 @@ export interface Conversation {
   personaId: string;
   messages: Message[];
   updatedAt: Date;
+  projectId?: string | null;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  customInstructions?: string;
+  createdAt: Date;
+}
+
+export interface MemoryItem {
+  id: string;
+  content: string;
+  createdAt: Date;
 }
 
 export const DEFAULT_PERSONAS: Persona[] = [
