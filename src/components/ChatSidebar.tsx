@@ -5,7 +5,7 @@ import { ConversationFolders } from './ConversationFolders';
 import { useTheme } from '@/hooks/useTheme';
 import { useConversationFlags } from '@/hooks/useConversationFlags';
 
-export type SidebarView = 'chat' | 'leaderboard' | 'profile' | 'refer' | 'personas';
+export type SidebarView = 'chat' | 'leaderboard' | 'profile' | 'refer' | 'personas' | 'projects' | 'memory';
 
 interface ChatSidebarProps {
   conversations: Conversation[];
